@@ -7,6 +7,7 @@ module ForemanInventoryUpload
       include ::ForemanRhCloud::Async::ExponentialBackoff
 
       def plan(instance_label, more_inputs = {})
+        clear_task_output(instance_label)
         inputs = more_inputs.merge(instance_label: instance_label)
         plan_self(inputs)
       end
@@ -51,6 +52,11 @@ module ForemanInventoryUpload
 
       def rescue_strategy_for_self
         Dynflow::Action::Rescue::Fail
+      end
+
+      def clear_task_output(label)
+        TaskOutputLine.where(label: label).delete_all
+        TaskOutputStatus.where(label: label).delete_all
       end
 
       private
