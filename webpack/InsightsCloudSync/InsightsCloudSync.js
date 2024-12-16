@@ -1,7 +1,6 @@
 import React from 'react';
 import PropTypes from 'prop-types';
 import PageLayout from 'foremanReact/routes/common/PageLayout/PageLayout';
-import InsightsHeader from './Components/InsightsHeader';
 import InsightsTable from './Components/InsightsTable';
 import RemediationModal from './Components/RemediationModal';
 import {
@@ -37,7 +36,7 @@ const InsightsCloudSync = ({ syncInsights, query, fetchInsights }) => {
         header={INSIGHTS_SYNC_PAGE_TITLE}
         toolbarButtons={toolbarButtons}
         searchQuery={query}
-        beforeToolbarComponent={<InsightsHeader />}
+        beforeToolbarComponent={null}
       >
         <InsightsTable />
       </PageLayout>

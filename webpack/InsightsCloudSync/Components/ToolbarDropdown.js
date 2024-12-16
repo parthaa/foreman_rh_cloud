@@ -4,9 +4,14 @@ import { translate as __ } from 'foremanReact/common/I18n';
 import { Dropdown, DropdownItem, KebabToggle } from '@patternfly/react-core';
 import { ExternalLinkAltIcon } from '@patternfly/react-icons';
 import { redHatAdvisorSystems } from '../InsightsCloudSyncHelpers';
+import { useAdvisorEngineConfig } from '../../common/Hooks/ConfigHooks';
 
 const ToolbarDropdown = ({ onRecommendationSync }) => {
   const [isDropdownOpen, setIsDropdownOpen] = useState(false);
+  const isLocalAdvisorEngine = useAdvisorEngineConfig();
+  if (isLocalAdvisorEngine) {
+    return null;
+  }
   const dropdownItems = [
     <DropdownItem
       key="recommendation-manual-sync"

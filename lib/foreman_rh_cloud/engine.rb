@@ -107,7 +107,13 @@ module ForemanRhCloud
 
           # Adding a sub menu after hosts menu
           divider :top_menu, caption: N_('Insights'), parent: :configure_menu
-          menu :top_menu, :inventory_upload, caption: N_('Inventory Upload'), url: '/foreman_rh_cloud/inventory_upload', url_hash: { controller: :react, action: :index }, parent: :configure_menu
+          menu :top_menu,
+            :inventory_upload,
+            caption: N_('Inventory Upload'),
+            url: '/foreman_rh_cloud/inventory_upload',
+            url_hash: { controller: :react, action: :index },
+            parent: :configure_menu,
+            if: -> { !ForemanRhCloud.with_local_advisor_engine? }
           menu :top_menu, :insights_hits, caption: N_('Recommendations'), url: '/foreman_rh_cloud/insights_cloud', url_hash: { controller: :react, action: :index }, parent: :configure_menu
 
           register_facet InsightsFacet, :insights do
@@ -199,5 +205,9 @@ module ForemanRhCloud
         ForemanRhCloud::Engine.load_seed
       end
     end
+  end
+
+  def self.with_local_advisor_engine?
+    SETTINGS.dig(:foreman_rh_cloud, :use_local_advisor_engine) || false
   end
 end

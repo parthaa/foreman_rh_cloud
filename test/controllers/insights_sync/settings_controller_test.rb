@@ -2,6 +2,9 @@ require 'test_plugin_helper'
 
 class SettingsControllerTest < ActionController::TestCase
   tests InsightsCloud::SettingsController
+  def setup
+    ForemanRhCloud.stubs(:with_local_advisor_engine?).returns(false)
+  end
 
   test 'should return allow_auto_insights_sync setting' do
     Setting[:allow_auto_insights_sync] = false
