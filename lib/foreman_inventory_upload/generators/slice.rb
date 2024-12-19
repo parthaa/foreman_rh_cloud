@@ -47,7 +47,7 @@ module ForemanInventoryUpload
         @stream.simple_field('packages_0_signature', fact_value(host, 'conversions::packages::0::signature'))
         @stream.simple_field('activity_started', fact_value(host, 'conversions::activity_started'))
         @stream.simple_field('activity_ended', fact_value(host, 'conversions::activity_ended'))
-        @stream.simple_field('success', fact_value(host, 'conversions::success') || false, :last)
+        @stream.simple_field('success', ActiveModel::Type::Boolean.new.cast(fact_value(host, 'conversions::success')), :last)
       end
 
       def report_host(host)
