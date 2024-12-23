@@ -4,22 +4,18 @@ module Api
       class InsightsAdvisorController < ::Api::V2::BaseController
         include ::Api::Version2
 
-        before_action :find_organization
-
+        api :GET, "insights_advisor/host_details", N_('Fetch Insights-related host details')
+        param :host_uuids, Array, required: true, desc: N_('List of host UUIDs')
         def host_details
-          @hosts = ::Host::Managed.search_for(params[:search] || "", :order => params[:order]).where(:organization_id => @organization.id).includes(:insights)
-          respond_to do |format|
-            format.json { render 'api/v2/insights_advisor/host_details' }
+          uuids = params.require(:host_uuids)
+          @hosts = ::Host.joins(:insights).where(:insights => { :uuid => uuids })
+          if @hosts.empty?
+            render json: { error: 'No hosts found for the given UUIDs' }, status: :not_found
+          else
+            respond_to do |format|
+              format.json { render 'api/v2/insights_advisor/host_details' }
+            end
           end
-        end
-
-        private
-
-        def find_organization
-          @organization ||= Organization.find_by(label: params[:organization_label]) if params[:organization_label]
-          @organization ||= Organization.find_by(label: params[:organization]) if params[:organization]
-          @organization ||= Organization.find(params[:organization_id]) if params[:organization_id]
-          raise ::Foreman::Exception.new(N_("Organization not found")) unless @organization
         end
       end
     end

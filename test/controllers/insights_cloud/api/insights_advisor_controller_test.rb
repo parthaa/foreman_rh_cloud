@@ -12,27 +12,19 @@ module InsightsCloud
         @host3 = FactoryBot.create(:host, organization: @test_org)
       end
 
-      test 'shows all hosts with no search param' do
-        get :host_details, params: { organization_id: @test_org.id }
-
+      test 'shows hosts with uuids' do
+        uuids = [@host1.insights.uuid, @host2.insights.uuid]
+        get :host_details, params: { organization_id: @test_org.id, host_uuids: uuids }
         assert_response :success
         assert_template 'api/v2/insights_advisor/host_details'
-        assert_equal @test_org.hosts.count, assigns(:hosts).count
-      end
-
-      test 'shows hosts with search param' do
-        search = @host1.name[0..4]
-        get :host_details, params: { organization_id: @test_org.id, search: search }
-        assert_response :success
-        assert_template 'api/v2/insights_advisor/host_details'
-        assert_equal @test_org.hosts.where('name LIKE ?', "%#{search}%").count, assigns(:hosts).count
+        assert_equal @test_org.hosts.joins(:insights).where(:insights => { :uuid => uuids }).count, assigns(:hosts).count
         refute_equal @test_org.hosts.count, assigns(:hosts).count
       end
 
-      test 'fails without org id' do
-        response = get :host_details
-
-        assert_includes response.body, 'Organization not found'
+      test 'shows error when no hosts found' do
+        get :host_details, params: { organization_id: @test_org.id, host_uuids: ['nonexistentuuid'] }
+        assert_response :not_found
+        assert_equal 'No hosts found for the given UUIDs', JSON.parse(response.body)['error']
       end
     end
   end
