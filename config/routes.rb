@@ -65,6 +65,11 @@ Rails.application.routes.draw do
 
         post 'cloud_request', to: 'cloud_request#update'
       end
+
+      namespace 'advisor_engine' do
+        get 'host_details', to: 'advisor_engine#host_details'
+        # post 'upload_hits', to: 'advisor_engine#upload_hits'
+      end
     end
   end
 end
