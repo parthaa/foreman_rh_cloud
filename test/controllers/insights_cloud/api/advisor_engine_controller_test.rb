@@ -2,8 +2,8 @@ require 'test_plugin_helper'
 
 module InsightsCloud
   module Api
-    class InsightsAdvisorControllerTest < ActionController::TestCase
-      tests ::Api::V2::InsightsAdvisor::InsightsAdvisorController
+    class AdvisorEngineControllerTest < ActionController::TestCase
+      tests ::Api::V2::AdvisorEngine::AdvisorEngineController
 
       setup do
         @test_org = FactoryBot.create(:organization)
@@ -16,7 +16,7 @@ module InsightsCloud
         uuids = [@host1.insights.uuid, @host2.insights.uuid]
         get :host_details, params: { organization_id: @test_org.id, host_uuids: uuids }
         assert_response :success
-        assert_template 'api/v2/insights_advisor/host_details'
+        assert_template 'api/v2/advisor_engine/host_details'
         assert_equal @test_org.hosts.joins(:insights).where(:insights => { :uuid => uuids }).count, assigns(:hosts).count
         refute_equal @test_org.hosts.count, assigns(:hosts).count
       end
