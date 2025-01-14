@@ -4,7 +4,7 @@ module Api
       class AdvisorEngineController < ::Api::V2::BaseController
         include ::Api::Version2
 
-        api :GET, "advisor_engine/host_details", N_('Fetch Insights-related host details')
+        api :GET, "/advisor_engine/host_details", N_('Fetch Insights-related host details')
         param :host_uuids, Array, required: true, desc: N_('List of host UUIDs')
         def host_details
           uuids = params.require(:host_uuids)
