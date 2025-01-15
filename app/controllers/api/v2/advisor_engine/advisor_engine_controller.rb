@@ -25,7 +25,7 @@ module Api
 
         api :PATCH, "/advisor_engine/upload_hits", N_("Upload from insights advisor")
         param :host_name, String, required: true
-        param :host_uuid, String, required: true
+        param :host_uuid, String
 
         param :payload, Hash, :desc => N_("On prem payload including resolutions, rules, hits") do
           param :resolutions, Array, :desc => N_("upload resolutions related to the hits") do
@@ -65,7 +65,7 @@ module Api
         def upload_hits
           host = Host.find_by(name: params.require(:host_name))
           payload = payload_params.to_h
-          task = ForemanTasks.async_task(ForemanHits::Async::Upload, host, params.require(:host_uuid), payload)
+          task = ForemanTasks.async_task(ForemanHits::Async::Upload, host,  params[:host_uuid], payload)
 
           render json: {
             task: task,

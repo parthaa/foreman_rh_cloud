@@ -15,9 +15,8 @@ module ForemanHits
       end
 
       def update_facets(host, uuid)
-        InsightsFacet.find_or_create_by(host_id: host.id) do |facet|
-          facet.uuid = uuid
-        end
+        facet = InsightsFacet.find_or_create_by(host_id: host.id)
+        facet.update!(uuid: uuid) if uuid.present?
         host.reload
       end
 
@@ -27,8 +26,8 @@ module ForemanHits
         hits = payload[:hits]
         # rubocop:disable Rails/SkipsModelValidations
         facet.hits.insert_all(hits)
-        facet.update(hits_count: facet.hits.count)
         # rubocop:enable Rails/SkipsModelValidations
+        InsightsFacet.reset_counters(facet.id, :hits_count)
       end
 
       def update_rules_and_resolutions(payload)

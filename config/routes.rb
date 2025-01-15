@@ -68,7 +68,7 @@ Rails.application.routes.draw do
 
       namespace 'advisor_engine' do
         get 'host_details', to: 'advisor_engine#host_details'
-        post 'upload_hits', to: 'advisor_engine#upload_hits'
+        patch 'upload_hits', to: 'advisor_engine#upload_hits'
       end
     end
   end
