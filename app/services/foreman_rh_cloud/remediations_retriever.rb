@@ -8,6 +8,21 @@ module ForemanRhCloud
       @logger = logger
     end
 
+    def create_and_validate_playbook
+      playbook = create_playbook
+      output = ''
+      IO.popen(["/usr/libexec/insights-ansible-playbook-verifier", '--stdin'], "r+") do |pipe|
+        pipe.puts playbook
+        pipe.close_write
+        output = pipe.read
+      end
+      if $?.exitstatus != 0
+        fail output
+      else
+        playbook
+      end
+   end
+
     def create_playbook
       unless cert_auth_available?(organization)
         logger.debug('Manifest is not available, cannot continue')

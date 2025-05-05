@@ -16,7 +16,7 @@ module ForemanRhCloud
     def remediations_playbook(hit_remediation_pairs)
       hit_remediation_pairs = JSON.parse(hit_remediation_pairs)
       retriever = ForemanRhCloud::HitRemediationsRetriever.new(hit_remediation_pairs, logger: template_logger)
-      retriever.create_playbook
+      retriever.create_and_validate_playbook
     end
 
     apipie :method, 'Returns a Red Hat remediation playbook compiled on console.redhat.com' do
@@ -28,7 +28,7 @@ module ForemanRhCloud
       retriever = ForemanRhCloud::URLRemediationsRetriever.new(url: playbook_url, organization_id: organization_id, logger: template_logger)
 
       cached("rh_playbook_#{playbook_url}") do
-        retriever.create_playbook
+        retriever.create_and_validate_playbook
       end
     end
   end
