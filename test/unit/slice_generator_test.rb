@@ -52,6 +52,8 @@ class SliceGeneratorTest < ActiveSupport::TestCase
       'distribution::version',
       'distribution::id',
       'virt::is_guest',
+      'hypervisor::type',
+      'hypervisor::version',
       'dmi::system::manufacturer',
       'dmi::system::product_name',
       'dmi::chassis::asset_tag',
@@ -96,6 +98,205 @@ class SliceGeneratorTest < ActiveSupport::TestCase
     refute actual_nic.key?('mtu')
     refute actual_nic.key?('mac_address')
     assert_equal 'test_nic1', actual_nic['name']
+  end
+
+  test 'generates a report with minimal data collection' do
+    Setting[:insights_minimal_data_collection] = true
+
+    FactoryBot.create(:fact_value, fact_name: fact_names['dmi::system::uuid'], value: 'D30B0B42-7824-2635-C62D-491394DE43F7', host: @host)
+    FactoryBot.create(:fact_value, fact_name: fact_names['dmi::bios::vendor'], value: 'SeaBios', host: @host)
+    FactoryBot.create(:fact_value, fact_name: fact_names['dmi::bios::version'], value: '10', host: @host)
+    FactoryBot.create(:fact_value, fact_name: fact_names['cpu::cpu_socket(s)'], value: '2', host: @host)
+    FactoryBot.create(:fact_value, fact_name: fact_names['cpu::cpu(s)'], value: '4', host: @host)
+    FactoryBot.create(:fact_value, fact_name: fact_names['cpu::core(s)_per_socket'], value: '1', host: @host)
+    FactoryBot.create(:fact_value, fact_name: fact_names['memory::memtotal'], value: '1024', host: @host)
+    FactoryBot.create(:fact_value, fact_name: fact_names['insights_id'], value: '00000000-0073-0400-0000-000000000000', host: @host)
+
+    batch = Host.where(id: @host.id).in_batches.first
+    generator = create_generator(batch)
+
+    json_str = generator.render
+    actual = JSON.parse(json_str.join("\n"))
+
+    assert_equal '00000000-0000-0000-0000-000000000000', actual['report_slice_id']
+    assert_not_nil(actual_host = actual['hosts'].first)
+    assert_equal 1, generator.hosts_count
+    assert_equal '1234', actual_host['account']
+    assert_not_nil(actual_system_profile = actual_host['system_profile'])
+    assert_not_nil actual_host['subscription_manager_id']
+    assert_equal 'D30B0B42-7824-2635-C62D-491394DE43F7', actual_host['bios_uuid']
+    assert_equal '00000000-0073-0400-0000-000000000000', actual_host['insights_id']
+    assert_equal 4, actual_system_profile['number_of_cpus']
+    assert_equal 2, actual_system_profile['number_of_sockets']
+    assert_equal 1_048_576, actual_system_profile['system_memory_bytes']
+    assert_equal 1, actual_system_profile['cores_per_socket']
+    assert_equal 'SeaBios', actual_host['bios_vendor']
+    assert_equal '10', actual_host['bios_version']
+    assert_equal '2', actual_host['cpu_socket(s)']
+    # Assert exclusion of non-minimal data collection fact
+    assert_nil actual_host['ip_addresses']
+    assert_nil actual_host['mac_addresses']
+    assert_nil actual_host['fqdn']
+  end
+
+  test 'generates a report with minimal data collection for a hypervisor' do
+    Setting[:insights_minimal_data_collection] = true
+
+    FactoryBot.create(:fact_value, fact_name: fact_names['dmi::system::uuid'], value: 'D30B0B42-7824-2635-C62D-491394DE43F7', host: @host)
+    FactoryBot.create(:fact_value, fact_name: fact_names['hypervisor::type'], value: 'VMware', host: @host)
+    FactoryBot.create(:fact_value, fact_name: fact_names['hypervisor::version'], value: '6.7', host: @host)
+    FactoryBot.create(:fact_value, fact_name: fact_names['cpu::cpu_socket(s)'], value: '2', host: @host)
+    FactoryBot.create(:fact_value, fact_name: fact_names['cpu::cpu(s)'], value: '4', host: @host)
+    FactoryBot.create(:fact_value, fact_name: fact_names['cpu::core(s)_per_socket'], value: '1', host: @host)
+    FactoryBot.create(:fact_value, fact_name: fact_names['memory::memtotal'], value: '1024', host: @host)
+
+    @host.subscription_facet.hypervisor = true
+    @host.subscription_facet.save!
+
+    batch = Host.where(id: @host.id).in_batches.first
+    generator = create_generator(batch)
+
+    json_str = generator.render
+    actual = JSON.parse(json_str.join("\n"))
+
+    assert_equal '00000000-0000-0000-0000-000000000000', actual['report_slice_id']
+    assert_not_nil(actual_host = actual['hosts'].first)
+    assert_not_nil(actual_system_profile = actual_host['system_profile'])
+    assert_equal 'D30B0B42-7824-2635-C62D-491394DE43F7', actual_host['bios_uuid']
+    assert_equal 'VMware', actual_host['hypervisor_type']
+    assert_equal '6.7', actual_host['hypervisor_version']
+    assert_equal '2', actual_host['cpu_socket(s)']
+    assert_equal 4, actual_system_profile['number_of_cpus']
+    assert_equal 2, actual_system_profile['number_of_sockets']
+    assert_equal 1_048_576, actual_system_profile['system_memory_bytes']
+    assert_equal 1, actual_system_profile['cores_per_socket']
+    assert_equal 1, generator.hosts_count
+    # Assert exclusion of non-minimal data collection facts
+    assert_nil actual_host['ip_addresses']
+    assert_nil actual_host['mac_addresses']
+    assert_nil actual_host['fqdn']
+    assert true, @host.subscription_facet.hypervisor?
+  end
+
+  test 'packages are excluded in the report with minimal data collection' do
+    Setting[:exclude_installed_packages] = false
+    Setting[:insights_minimal_data_collection] = true
+
+    installed_package = ::Katello::InstalledPackage.create(name: 'test-package', nvrea: 'test-package-1.0.x86_64', nvra: 'test-package-1.0.x86_64')
+    another_host = FactoryBot.create(
+      :host,
+      :with_subscription,
+      :with_content,
+      content_view: @host.content_views.first,
+      lifecycle_environment: @host.lifecycle_environments.first,
+      organization: @host.organization,
+      installed_packages: [installed_package]
+    )
+
+    FactoryBot.create(:fact_value, fact_name: fact_names['dmi::system::uuid'], value: 'D30B0B42-7824-2635-C62D-491394DE43F7', host: another_host)
+    FactoryBot.create(:fact_value, fact_name: fact_names['dmi::bios::vendor'], value: 'SeaBios', host: another_host)
+    FactoryBot.create(:fact_value, fact_name: fact_names['dmi::bios::version'], value: '10', host: another_host)
+    FactoryBot.create(:fact_value, fact_name: fact_names['cpu::cpu_socket(s)'], value: '2', host: another_host)
+    FactoryBot.create(:fact_value, fact_name: fact_names['cpu::cpu(s)'], value: '4', host: another_host)
+    FactoryBot.create(:fact_value, fact_name: fact_names['cpu::core(s)_per_socket'], value: '1', host: another_host)
+    FactoryBot.create(:fact_value, fact_name: fact_names['memory::memtotal'], value: '1024', host: another_host)
+
+    batch = Host.where(id: another_host.id).in_batches.first
+    generator = create_generator(batch)
+
+    json_str = generator.render
+    actual = JSON.parse(json_str.join("\n"))
+
+    assert_equal '00000000-0000-0000-0000-000000000000', actual['report_slice_id']
+    assert_not_nil(actual_host = actual['hosts'].first)
+    assert_not_nil(actual_host['system_profile'])
+    assert_not_nil(actual_system_profile = actual_host['system_profile'])
+    assert_not_nil actual_host['subscription_manager_id']
+    assert_equal 'D30B0B42-7824-2635-C62D-491394DE43F7', actual_host['bios_uuid']
+    assert_equal 4, actual_system_profile['number_of_cpus']
+    assert_equal 2, actual_system_profile['number_of_sockets']
+    assert_equal 1_048_576, actual_system_profile['system_memory_bytes']
+    assert_equal 1, actual_system_profile['cores_per_socket']
+    assert_equal 'SeaBios', actual_host['bios_vendor']
+    assert_equal '10', actual_host['bios_version']
+    assert_equal '2', actual_host['cpu_socket(s)']
+    assert_nil actual_host['installed_packages']
+  end
+
+  test 'generates a report with minimal data collection with ip setting overridden' do
+    Setting[:insights_minimal_data_collection] = true
+    Setting[:obfuscate_inventory_ips] = false
+
+    FactoryBot.create(:fact_value, fact_name: fact_names['dmi::system::uuid'], value: 'D30B0B42-7824-2635-C62D-491394DE43F7', host: @host)
+    FactoryBot.create(:fact_value, fact_name: fact_names['dmi::bios::vendor'], value: 'SeaBios', host: @host)
+    FactoryBot.create(:fact_value, fact_name: fact_names['dmi::bios::version'], value: '10', host: @host)
+    FactoryBot.create(:fact_value, fact_name: fact_names['cpu::cpu_socket(s)'], value: '2', host: @host)
+    FactoryBot.create(:fact_value, fact_name: fact_names['cpu::cpu(s)'], value: '4', host: @host)
+    FactoryBot.create(:fact_value, fact_name: fact_names['cpu::core(s)_per_socket'], value: '1', host: @host)
+    FactoryBot.create(:fact_value, fact_name: fact_names['memory::memtotal'], value: '1024', host: @host)
+
+    batch = Host.where(id: @host.id).in_batches.first
+    generator = create_generator(batch)
+
+    json_str = generator.render
+    actual = JSON.parse(json_str.join("\n"))
+
+    assert_equal '00000000-0000-0000-0000-000000000000', actual['report_slice_id']
+    assert_not_nil(actual_host = actual['hosts'].first)
+    assert_equal 1, generator.hosts_count
+    assert_not_nil(actual_host['system_profile'])
+    assert_not_nil(actual_system_profile = actual_host['system_profile'])
+    assert_not_nil actual_host['subscription_manager_id']
+    assert_equal 'D30B0B42-7824-2635-C62D-491394DE43F7', actual_host['bios_uuid']
+    assert_equal 4, actual_system_profile['number_of_cpus']
+    assert_equal 2, actual_system_profile['number_of_sockets']
+    assert_equal 1_048_576, actual_system_profile['system_memory_bytes']
+    assert_equal 1, actual_system_profile['cores_per_socket']
+    assert_equal 'SeaBios', actual_host['bios_vendor']
+    assert_equal '10', actual_host['bios_version']
+    assert_equal '2', actual_host['cpu_socket(s)']
+    # Assert exclusion of non-minimal data collection fact
+    assert_nil actual_host['ip_addresses']
+    assert_nil actual_host['mac_addresses']
+    assert_nil actual_host['fqdn']
+  end
+
+  test 'generates a report with minimal data collection with fqdn setting overridden' do
+    Setting[:insights_minimal_data_collection] = true
+    Setting[:obfuscate_inventory_hostnames] = false
+
+    FactoryBot.create(:fact_value, fact_name: fact_names['dmi::system::uuid'], value: 'D30B0B42-7824-2635-C62D-491394DE43F7', host: @host)
+    FactoryBot.create(:fact_value, fact_name: fact_names['dmi::bios::vendor'], value: 'SeaBios', host: @host)
+    FactoryBot.create(:fact_value, fact_name: fact_names['dmi::bios::version'], value: '10', host: @host)
+    FactoryBot.create(:fact_value, fact_name: fact_names['cpu::cpu_socket(s)'], value: '2', host: @host)
+    FactoryBot.create(:fact_value, fact_name: fact_names['cpu::cpu(s)'], value: '4', host: @host)
+    FactoryBot.create(:fact_value, fact_name: fact_names['cpu::core(s)_per_socket'], value: '1', host: @host)
+    FactoryBot.create(:fact_value, fact_name: fact_names['memory::memtotal'], value: '1024', host: @host)
+
+    batch = Host.where(id: @host.id).in_batches.first
+    generator = create_generator(batch)
+
+    json_str = generator.render
+    actual = JSON.parse(json_str.join("\n"))
+
+    assert_equal '00000000-0000-0000-0000-000000000000', actual['report_slice_id']
+    assert_not_nil(actual_host = actual['hosts'].first)
+    assert_not_nil(actual_host['system_profile'])
+    assert_not_nil(actual_system_profile = actual_host['system_profile'])
+    assert_not_nil actual_host['subscription_manager_id']
+    assert_equal 'D30B0B42-7824-2635-C62D-491394DE43F7', actual_host['bios_uuid']
+    assert_equal 4, actual_system_profile['number_of_cpus']
+    assert_equal 2, actual_system_profile['number_of_sockets']
+    assert_equal 1_048_576, actual_system_profile['system_memory_bytes']
+    assert_equal 1, actual_system_profile['cores_per_socket']
+    assert_equal 'SeaBios', actual_host['bios_vendor']
+    assert_equal '10', actual_host['bios_version']
+    assert_equal '2', actual_host['cpu_socket(s)']
+    # Assert exclusion of non-minimal data collection fact
+    assert_nil actual_host['ip_addresses']
+    assert_nil actual_host['mac_addresses']
+    assert_nil actual_host['fqdn']
+    assert_equal 1, generator.hosts_count
   end
 
   test 'hosts report fields should be present if fact exist' do
