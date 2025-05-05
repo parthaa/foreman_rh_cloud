@@ -35,6 +35,12 @@ class SliceGeneratorTest < ActiveSupport::TestCase
     ForemanInventoryUpload::Generators::Queries.instance_variable_set(:@fact_names, nil)
   end
 
+  def create_fact_values(host, facts)
+    facts.each do |fact_name, value|
+      FactoryBot.create(:fact_value, fact_name: fact_names[fact_name], value: value, host: host)
+    end
+  end
+
   def interesting_facts
     [
       'dmi::system::uuid',
@@ -102,15 +108,15 @@ class SliceGeneratorTest < ActiveSupport::TestCase
 
   test 'generates a report with minimal data collection' do
     Setting[:insights_minimal_data_collection] = true
-
-    FactoryBot.create(:fact_value, fact_name: fact_names['dmi::system::uuid'], value: 'D30B0B42-7824-2635-C62D-491394DE43F7', host: @host)
-    FactoryBot.create(:fact_value, fact_name: fact_names['dmi::bios::vendor'], value: 'SeaBios', host: @host)
-    FactoryBot.create(:fact_value, fact_name: fact_names['dmi::bios::version'], value: '10', host: @host)
-    FactoryBot.create(:fact_value, fact_name: fact_names['cpu::cpu_socket(s)'], value: '2', host: @host)
-    FactoryBot.create(:fact_value, fact_name: fact_names['cpu::cpu(s)'], value: '4', host: @host)
-    FactoryBot.create(:fact_value, fact_name: fact_names['cpu::core(s)_per_socket'], value: '1', host: @host)
-    FactoryBot.create(:fact_value, fact_name: fact_names['memory::memtotal'], value: '1024', host: @host)
-    FactoryBot.create(:fact_value, fact_name: fact_names['insights_id'], value: '00000000-0073-0400-0000-000000000000', host: @host)
+    create_fact_values(@host,
+      'dmi::system::uuid' => 'D30B0B42-7824-2635-C62D-491394DE43F7',
+      'dmi::bios::vendor' => 'SeaBios',
+      'dmi::bios::version' => '10',
+      'cpu::cpu_socket(s)' => '2',
+      'cpu::cpu(s)' => '4',
+      'cpu::core(s)_per_socket' => '1',
+      'memory::memtotal' => '1024',
+      'insights_id' => '00000000-0073-0400-0000-000000000000')
 
     batch = Host.where(id: @host.id).in_batches.first
     generator = create_generator(batch)
@@ -141,14 +147,14 @@ class SliceGeneratorTest < ActiveSupport::TestCase
 
   test 'generates a report with minimal data collection for a hypervisor' do
     Setting[:insights_minimal_data_collection] = true
-
-    FactoryBot.create(:fact_value, fact_name: fact_names['dmi::system::uuid'], value: 'D30B0B42-7824-2635-C62D-491394DE43F7', host: @host)
-    FactoryBot.create(:fact_value, fact_name: fact_names['hypervisor::type'], value: 'VMware', host: @host)
-    FactoryBot.create(:fact_value, fact_name: fact_names['hypervisor::version'], value: '6.7', host: @host)
-    FactoryBot.create(:fact_value, fact_name: fact_names['cpu::cpu_socket(s)'], value: '2', host: @host)
-    FactoryBot.create(:fact_value, fact_name: fact_names['cpu::cpu(s)'], value: '4', host: @host)
-    FactoryBot.create(:fact_value, fact_name: fact_names['cpu::core(s)_per_socket'], value: '1', host: @host)
-    FactoryBot.create(:fact_value, fact_name: fact_names['memory::memtotal'], value: '1024', host: @host)
+    create_fact_values(@host,
+      'dmi::system::uuid' => 'D30B0B42-7824-2635-C62D-491394DE43F7',
+      'hypervisor::type' => 'VMware',
+      'hypervisor::version' => '6.7',
+      'cpu::cpu_socket(s)' => '2',
+      'cpu::cpu(s)' => '4',
+      'cpu::core(s)_per_socket' => '1',
+      'memory::memtotal' => '1024')
 
     @host.subscription_facet.hypervisor = true
     @host.subscription_facet.save!
@@ -192,14 +198,14 @@ class SliceGeneratorTest < ActiveSupport::TestCase
       organization: @host.organization,
       installed_packages: [installed_package]
     )
-
-    FactoryBot.create(:fact_value, fact_name: fact_names['dmi::system::uuid'], value: 'D30B0B42-7824-2635-C62D-491394DE43F7', host: another_host)
-    FactoryBot.create(:fact_value, fact_name: fact_names['dmi::bios::vendor'], value: 'SeaBios', host: another_host)
-    FactoryBot.create(:fact_value, fact_name: fact_names['dmi::bios::version'], value: '10', host: another_host)
-    FactoryBot.create(:fact_value, fact_name: fact_names['cpu::cpu_socket(s)'], value: '2', host: another_host)
-    FactoryBot.create(:fact_value, fact_name: fact_names['cpu::cpu(s)'], value: '4', host: another_host)
-    FactoryBot.create(:fact_value, fact_name: fact_names['cpu::core(s)_per_socket'], value: '1', host: another_host)
-    FactoryBot.create(:fact_value, fact_name: fact_names['memory::memtotal'], value: '1024', host: another_host)
+    create_fact_values(another_host,
+      'dmi::system::uuid' => 'D30B0B42-7824-2635-C62D-491394DE43F7',
+      'dmi::bios::vendor' => 'SeaBios',
+      'dmi::bios::version' => '10',
+      'cpu::cpu_socket(s)' => '2',
+      'cpu::cpu(s)' => '4',
+      'cpu::core(s)_per_socket' => '1',
+      'memory::memtotal' => '1024')
 
     batch = Host.where(id: another_host.id).in_batches.first
     generator = create_generator(batch)
@@ -226,14 +232,14 @@ class SliceGeneratorTest < ActiveSupport::TestCase
   test 'generates a report with minimal data collection with ip setting overridden' do
     Setting[:insights_minimal_data_collection] = true
     Setting[:obfuscate_inventory_ips] = false
-
-    FactoryBot.create(:fact_value, fact_name: fact_names['dmi::system::uuid'], value: 'D30B0B42-7824-2635-C62D-491394DE43F7', host: @host)
-    FactoryBot.create(:fact_value, fact_name: fact_names['dmi::bios::vendor'], value: 'SeaBios', host: @host)
-    FactoryBot.create(:fact_value, fact_name: fact_names['dmi::bios::version'], value: '10', host: @host)
-    FactoryBot.create(:fact_value, fact_name: fact_names['cpu::cpu_socket(s)'], value: '2', host: @host)
-    FactoryBot.create(:fact_value, fact_name: fact_names['cpu::cpu(s)'], value: '4', host: @host)
-    FactoryBot.create(:fact_value, fact_name: fact_names['cpu::core(s)_per_socket'], value: '1', host: @host)
-    FactoryBot.create(:fact_value, fact_name: fact_names['memory::memtotal'], value: '1024', host: @host)
+    create_fact_values(@host,
+      'dmi::system::uuid' => 'D30B0B42-7824-2635-C62D-491394DE43F7',
+      'dmi::bios::vendor' => 'SeaBios',
+      'dmi::bios::version' => '10',
+      'cpu::cpu_socket(s)' => '2',
+      'cpu::cpu(s)' => '4',
+      'cpu::core(s)_per_socket' => '1',
+      'memory::memtotal' => '1024')
 
     batch = Host.where(id: @host.id).in_batches.first
     generator = create_generator(batch)
@@ -264,14 +270,14 @@ class SliceGeneratorTest < ActiveSupport::TestCase
   test 'generates a report with minimal data collection with fqdn setting overridden' do
     Setting[:insights_minimal_data_collection] = true
     Setting[:obfuscate_inventory_hostnames] = false
-
-    FactoryBot.create(:fact_value, fact_name: fact_names['dmi::system::uuid'], value: 'D30B0B42-7824-2635-C62D-491394DE43F7', host: @host)
-    FactoryBot.create(:fact_value, fact_name: fact_names['dmi::bios::vendor'], value: 'SeaBios', host: @host)
-    FactoryBot.create(:fact_value, fact_name: fact_names['dmi::bios::version'], value: '10', host: @host)
-    FactoryBot.create(:fact_value, fact_name: fact_names['cpu::cpu_socket(s)'], value: '2', host: @host)
-    FactoryBot.create(:fact_value, fact_name: fact_names['cpu::cpu(s)'], value: '4', host: @host)
-    FactoryBot.create(:fact_value, fact_name: fact_names['cpu::core(s)_per_socket'], value: '1', host: @host)
-    FactoryBot.create(:fact_value, fact_name: fact_names['memory::memtotal'], value: '1024', host: @host)
+    create_fact_values(@host,
+      'dmi::system::uuid' => 'D30B0B42-7824-2635-C62D-491394DE43F7',
+      'dmi::bios::vendor' => 'SeaBios',
+      'dmi::bios::version' => '10',
+      'cpu::cpu_socket(s)' => '2',
+      'cpu::cpu(s)' => '4',
+      'cpu::core(s)_per_socket' => '1',
+      'memory::memtotal' => '1024')
 
     batch = Host.where(id: @host.id).in_batches.first
     generator = create_generator(batch)
@@ -300,9 +306,10 @@ class SliceGeneratorTest < ActiveSupport::TestCase
   end
 
   test 'hosts report fields should be present if fact exist' do
-    FactoryBot.create(:fact_value, fact_name: fact_names['cpu::cpu(s)'], value: '4', host: @host)
-    FactoryBot.create(:fact_value, fact_name: fact_names['cpu::cpu_socket(s)'], value: '2', host: @host)
-    FactoryBot.create(:fact_value, fact_name: fact_names['cpu::core(s)_per_socket'], value: '1', host: @host)
+    create_fact_values(@host,
+      'cpu::cpu(s)' => '4',
+      'cpu::cpu_socket(s)' => '2',
+      'cpu::core(s)_per_socket' => '1')
 
     batch = Host.where(id: @host.id).in_batches.first
     generator = create_generator(batch)
@@ -905,7 +912,7 @@ class SliceGeneratorTest < ActiveSupport::TestCase
   end
 
   test 'passes valid bios_uuid field' do
-    FactoryBot.create(:fact_value, fact_name: fact_names['dmi::system::uuid'], value: 'D30B0B42-7824-2635-C62D-491394DE43F7', host: @host)
+    create_fact_values(@host, 'dmi::system::uuid' => 'D30B0B42-7824-2635-C62D-491394DE43F7')
 
     batch = Host.where(id: @host.id).in_batches.first
     generator = create_generator(batch)
