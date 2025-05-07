@@ -18,20 +18,34 @@ module InsightsCloud::Api
       certs = candlepin_id_cert @organization
       begin
         @cloud_response = ::ForemanRhCloud::CloudRequestForwarder.new.forward_request(request, controller_name, @branch_id, certs)
+      rescue RestClient::Exceptions::Timeout => e
+        response_obj = e.response.presence || e.exception
+        return render json: { message: response_obj.to_s, error: response_obj.to_s }, status: :gateway_timeout
+      rescue RestClient::Unauthorized => e
+        logger.info("Forwarding request auth error: #{e}")
+        # Catch  RestClient::Unauthorized,
+        message = 'Authentication to the Insights Service failed.'
+        return render json: { message: message, error: message }, status: :unauthorized
+      rescue RestClient::NotModified => e
+        logger.info("Forwarding request not modified: #{e}")
+        message = 'Cloud request not modified'
+        return render json: { message: message, error: message }, status: :not_modified
+      rescue RestClient::ExceptionWithResponse => e
+        response_obj = e.response.presence || e.exception
+        code = response_obj.try(:code) || response_obj.try(:http_code) || 500
+        message = 'Cloud request failed'
+
+        return render json: {
+          :message => message,
+          :error => response_obj.to_s,
+          :headers => {},
+          :response => response_obj,
+        }, status: code
       rescue StandardError => e
         # Catch Errno::ECONNREFUSED, RestClient::Forbidden, RestClient::Unauthorized,
         # and other unusual cases that aren't caught and returned by forward_request
         logger.info("Forwarding request failed with exception: #{e}")
         return render json: { error: e }, status: :bad_gateway
-      end
-
-      # Return exceptions that were caught by forward_request
-      case @cloud_response
-      when RestClient::Exceptions::Timeout
-        logger.info("Forwarding request failed: #{@cloud_response}")
-        return render json: @cloud_response, status: :gateway_timeout
-      when RestClient::ExceptionWithResponse
-        return render json: @cloud_response, status: @cloud_response.http_code
       end
 
       # Append redhat-specific headers
