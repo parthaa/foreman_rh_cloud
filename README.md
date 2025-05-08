@@ -1,6 +1,9 @@
+[![Ruby tests](https://github.com/theforeman/foreman_rh_cloud/actions/workflows/ruby_tests.yml/badge.svg)](https://github.com/theforeman/foreman_rh_cloud/actions/workflows/ruby_tests.yml)
+[![JS](https://github.com/theforeman/foreman_rh_cloud/actions/workflows/js_tests.yml/badge.svg)](https://github.com/theforeman/foreman_rh_cloud/actions/workflows/js_tests.yml)
+
 # ForemanRhCloud
 
-*Introdction here*
+*Introduction here*
 
 ## Installation
 
@@ -15,7 +18,7 @@ for how to install Foreman plugins
 
 #### Inventory upload
 
-In UI: Configure -> Inventory Upload -> Generate and upload report 
+In UI: Insights -> Inventory Upload -> select the organization -> Generate and upload report
 
 From command-line:
 
@@ -38,7 +41,7 @@ From command-line:
 
 #### Fetch hosts remediation data
 
-In UI: Configure -> Insights -> Sync now
+In UI: Insights -> Recommendations -> Sync recommendations (under the vertical ellipsis)
 
 From command-line:
 
@@ -46,7 +49,7 @@ From command-line:
 
 #### Synchronize inventory status
 
-In UI: Configure -> Inventory Upload -> Sync all inventory status
+In UI: Insights -> Inventory Upload -> Sync all inventory status
 
 From command-line:
 

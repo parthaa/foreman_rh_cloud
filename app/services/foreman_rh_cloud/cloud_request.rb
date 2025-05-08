@@ -17,9 +17,15 @@ module ForemanRhCloud
       logger.debug("Response headers for request url #{final_params[:url]} are: #{response.headers}")
 
       response
-    rescue RestClient::Exception => ex
-      logger.debug("Failed response with code #{ex.http_code} headers for request url #{final_params[:url]} are: #{ex.http_headers} and body: #{ex.http_body}")
-      raise ex
+    rescue RestClient::Exceptions::Timeout => ex
+      logger.debug("Timeout exception raised for request url #{final_params[:url]}: #{ex}")
+      raise
+    rescue RestClient::ExceptionWithResponse => ex
+      logger.debug("Response headers for request url #{final_params[:url]} with status code #{ex.http_code} are: #{ex.http_headers} and body: #{ex.http_body}")
+      raise
+    rescue StandardError => ex
+      logger.debug("Exception raised for request url #{final_params[:url]}: #{ex}")
+      raise
     end
   end
 end
