@@ -17,7 +17,7 @@ module ForemanInventoryUpload
       end
 
       def generate_parameters
-        return [] unless Setting[:include_parameter_tags]
+        return [] unless Foreman.settings.find('include_parameter_tags') && Setting[:include_parameter_tags]
 
         (@host.host_params || {})
           .select { |_name, value| value.present? || value.is_a?(FalseClass) }

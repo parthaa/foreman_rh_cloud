@@ -90,7 +90,7 @@ module ForemanInventoryUpload
       def report_host(host)
         host_ips_cache = host_ips(host)
         @stream.object do
-          if Setting[:insights_minimal_data_collection]
+          if Foreman.settings.find('insights_minimal_data_collection') && Setting[:insights_minimal_data_collection]
             insights_minimal_data_collection(host)
           else
             @stream.simple_field('fqdn', fqdn(host))
@@ -205,7 +205,9 @@ module ForemanInventoryUpload
             end.join(', '))
           end
         end
-        if !Setting[:insights_minimal_data_collection] && !Setting[:exclude_installed_packages]
+        minimal_data_enabled = Foreman.settings.find('insights_minimal_data_collection') && Setting[:insights_minimal_data_collection]
+        exclude_packages_enabled = Foreman.settings.find('exclude_installed_packages') && Setting[:exclude_installed_packages]
+        if !minimal_data_enabled && !exclude_packages_enabled
           @stream.array_field('installed_packages') do
             first = true
             host.installed_packages.each do |package|

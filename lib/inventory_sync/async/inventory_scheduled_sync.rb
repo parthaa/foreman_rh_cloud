@@ -5,7 +5,7 @@ module InventorySync
       include ForemanInventoryUpload::Async::DelayedStart
 
       def plan
-        unless Setting[:allow_auto_inventory_upload]
+        unless Foreman.settings.find('allow_auto_inventory_upload') && Setting[:allow_auto_inventory_upload]
           logger.debug(
             'The scheduled process is disabled due to the "allow_auto_inventory_upload"
             setting being set to false.'
@@ -22,7 +22,7 @@ module InventorySync
               Organization.unscoped.each do |org|
                 sequence do
                   plan_org_sync(org)
-                  plan_remove_insights_hosts(org.id) if Setting[:allow_auto_insights_mismatch_delete]
+                  plan_remove_insights_hosts(org.id) if Foreman.settings.find('allow_auto_insights_mismatch_delete') && Setting[:allow_auto_insights_mismatch_delete]
                 end
               end
             end

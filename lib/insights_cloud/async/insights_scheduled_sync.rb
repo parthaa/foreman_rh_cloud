@@ -5,7 +5,7 @@ module InsightsCloud
       include ForemanInventoryUpload::Async::DelayedStart
 
       def plan
-        unless Setting[:allow_auto_insights_sync]
+        unless Foreman.settings.find('allow_auto_insights_sync') && Setting[:allow_auto_insights_sync]
           logger.debug(
             'The scheduled process is disabled due to the "allow_auto_insights_sync"
             setting being set to false.'

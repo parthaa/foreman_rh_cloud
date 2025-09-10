@@ -5,7 +5,9 @@ module InsightsCloud
     end
 
     def update
-      Setting[:allow_auto_insights_sync] = settings_params
+      if Foreman.settings.find('allow_auto_insights_sync')
+        Setting[:allow_auto_insights_sync] = settings_params
+      end
       render_setting(:insightsSyncEnabled, :allow_auto_insights_sync)
     end
 
@@ -26,8 +28,9 @@ module InsightsCloud
     private
 
     def render_setting(node_name, setting)
+      setting_value = Foreman.settings.find(setting.to_s) ? Setting[setting] : false
       render json: {
-        node_name => Setting[setting],
+        node_name => setting_value,
       }
     end
 

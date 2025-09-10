@@ -5,7 +5,7 @@ module ForemanInventoryUpload
       include ForemanInventoryUpload::Async::DelayedStart
 
       def plan
-        unless Setting[:allow_auto_inventory_upload]
+        unless Foreman.settings.find('allow_auto_inventory_upload') && Setting[:allow_auto_inventory_upload]
           logger.debug(
             'The scheduled process is disabled due to the "allow_auto_inventory_upload"
             setting being set to false.'
