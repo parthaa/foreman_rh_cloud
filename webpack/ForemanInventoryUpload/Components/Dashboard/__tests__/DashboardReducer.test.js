@@ -1,5 +1,4 @@
-import { testReducerSnapshotWithFixtures } from '@theforeman/test';
-
+import Immutable from 'seamless-immutable';
 import {
   INVENTORY_POLLING_START,
   INVENTORY_POLLING,
@@ -10,26 +9,38 @@ import reducer from '../DashboardReducer';
 import {
   pollingProcessID,
   logs,
-  initialState,
   activeTab,
   error,
   accountID,
   scheduled,
 } from '../Dashboard.fixtures';
 
-const fixtures = {
-  'should return the initial state': initialState,
-  'should handle INVENTORY_POLLING_START': {
-    action: {
+describe('Dashboard reducer', () => {
+  const initialState = Immutable({});
+
+  it('should return the initial state', () => {
+    const result = reducer(undefined, {});
+    expect(result).toEqual({});
+  });
+
+  it('should handle INVENTORY_POLLING_START', () => {
+    const action = {
       type: INVENTORY_POLLING_START,
       payload: {
         pollingProcessID,
         accountID,
       },
-    },
-  },
-  'should handle INVENTORY_POLLING': {
-    action: {
+    };
+    expect(reducer(initialState, action)).toEqual({
+      'some-account-ID': {
+        activeTab: 'generating',
+        pollingProcessID: 1,
+      },
+    });
+  });
+
+  it('should handle INVENTORY_POLLING', () => {
+    const action = {
       type: INVENTORY_POLLING,
       payload: {
         logs,
@@ -37,28 +48,48 @@ const fixtures = {
         activeTab,
         scheduled,
       },
-    },
-  },
-  'should handle INVENTORY_TAB_CHANGED': {
-    action: {
+    };
+    expect(reducer(initialState, action)).toEqual({
+      'some-account-ID': {
+        uploads: {
+          error: null,
+          logs: ['some-logs...'],
+          scheduled: '2019-08-21T16:14:16.520+03:00',
+        },
+      },
+    });
+  });
+
+  it('should handle INVENTORY_TAB_CHANGED', () => {
+    const action = {
       type: INVENTORY_TAB_CHANGED,
       payload: {
         activeTab,
         accountID,
       },
-    },
-  },
-  'should handle INVENTORY_POLLING_ERROR': {
-    action: {
+    };
+    expect(reducer(initialState, action)).toEqual({
+      'some-account-ID': {
+        activeTab: 'uploads',
+      },
+    });
+  });
+
+  it('should handle INVENTORY_POLLING_ERROR', () => {
+    const action = {
       type: INVENTORY_POLLING_ERROR,
       payload: {
         error,
         accountID,
         activeTab,
       },
-    },
-  },
-};
-
-describe('Dashboard reducer', () =>
-  testReducerSnapshotWithFixtures(reducer, fixtures));
+    };
+    expect(reducer(initialState, action)).toEqual({
+      'some-account-ID': {
+        uploads: {
+          error: 'some-error',
+        },
+      },
+    });
+  });
+});
