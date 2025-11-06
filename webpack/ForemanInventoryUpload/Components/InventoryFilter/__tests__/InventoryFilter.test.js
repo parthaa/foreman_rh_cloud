@@ -3,10 +3,10 @@ import { render, screen } from '@testing-library/react';
 import '@testing-library/jest-dom';
 import { noop } from 'foremanReact/common/helpers';
 import InventoryFilter from '../InventoryFilter';
-import { filterTerm, organization } from '../InventoryFilter.fixtures';
+import { filterTerm } from '../InventoryFilter.fixtures';
 
 jest.mock('foremanReact/Root/Context/ForemanContext', () => ({
-  useForemanOrganization: () => ({ title: organization }),
+  useForemanOrganization: () => ({ title: 'some-org' }),
 }));
 
 jest.mock('../Components/ClearButton', () => ({
