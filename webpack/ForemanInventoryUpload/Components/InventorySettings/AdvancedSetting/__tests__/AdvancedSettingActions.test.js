@@ -1,9 +1,20 @@
-import { testActionSnapshotWithFixtures } from '@theforeman/test';
 import { handleToggle } from '../AdvancedSettingActions';
 
-const fixtures = {
-  'should handleToggle': () => handleToggle('autoUploadEnabled', false),
-};
+describe('AdvancedSetting actions', () => {
+  it('should handleToggle', () => {
+    const dispatch = jest.fn();
+    handleToggle('autoUploadEnabled', false)(dispatch);
 
-describe('AdvancedSetting actions', () =>
-  testActionSnapshotWithFixtures(fixtures));
+    expect(dispatch).toHaveBeenCalledWith(
+      expect.objectContaining({
+        type: 'post-some-type',
+        key: 'INVENTORY_SETTINGS',
+        url: '/foreman_inventory_upload/setting',
+        params: {
+          setting: 'autoUploadEnabled',
+          value: true,
+        },
+      })
+    );
+  });
+});

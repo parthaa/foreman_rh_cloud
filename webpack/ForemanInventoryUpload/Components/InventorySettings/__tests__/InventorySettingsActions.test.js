@@ -1,14 +1,32 @@
-import { testActionSnapshotWithFixtures } from '@theforeman/test';
 import { getSettings, setSetting } from '../InventorySettingsActions';
 
-const fixtures = {
-  'should getSettings': () => getSettings(),
-  'should setSetting hostObfuscation true': () =>
+describe('Inventory settings actions', () => {
+  it('should getSettings', () => {
+    const action = getSettings();
+    expect(action).toEqual({
+      type: 'get-some-type',
+      key: 'INVENTORY_SETTINGS',
+      url: '/foreman_inventory_upload/settings',
+    });
+  });
+
+  it('should setSetting hostObfuscation true', () => {
+    const dispatch = jest.fn();
     setSetting({
       setting: 'hostObfuscation',
       value: true,
-    }),
-};
+    })(dispatch);
 
-describe('Inventory settings actions', () =>
-  testActionSnapshotWithFixtures(fixtures));
+    expect(dispatch).toHaveBeenCalledWith(
+      expect.objectContaining({
+        type: 'post-some-type',
+        key: 'INVENTORY_SETTINGS',
+        url: '/foreman_inventory_upload/setting',
+        params: {
+          setting: 'hostObfuscation',
+          value: true,
+        },
+      })
+    );
+  });
+});

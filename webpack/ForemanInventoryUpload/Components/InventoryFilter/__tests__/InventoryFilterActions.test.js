@@ -1,14 +1,25 @@
-import { testActionSnapshotWithFixtures } from '@theforeman/test';
 import {
   handleFilterChange,
   handleFilterClear,
 } from '../InventoryFilterActions';
 import { filterTerm } from '../InventoryFilter.fixtures';
 
-const fixtures = {
-  'should handleFilterChange': () => handleFilterChange(filterTerm),
-  'should handleFilterClear': () => handleFilterClear(),
-};
+describe('InventoryFilter actions', () => {
+  it('should handleFilterChange', () => {
+    const action = handleFilterChange(filterTerm);
+    expect(action).toEqual({
+      type: 'INVENTORY_FILTER_UPDATE',
+      payload: {
+        filterTerm: 'test_filter_term',
+      },
+    });
+  });
 
-describe('InventoryFilter actions', () =>
-  testActionSnapshotWithFixtures(fixtures));
+  it('should handleFilterClear', () => {
+    const action = handleFilterClear();
+    expect(action).toEqual({
+      type: 'INVENTORY_FILTER_CLEAR',
+      payload: {},
+    });
+  });
+});

@@ -1,4 +1,3 @@
-import { testSelectorsSnapshotWithFixtures } from '@theforeman/test';
 import { filterTerm } from '../InventoryFilter.fixtures';
 import { rhCloudStateWrapper } from '../../../../ForemanRhCloudTestHelpers';
 import {
@@ -12,10 +11,14 @@ const state = rhCloudStateWrapper({
   },
 });
 
-const fixtures = {
-  'should return InventoryFilter': () => selectInventoryFilter(state),
-  'should return filterTerm': () => selectFilterTerm(state),
-};
+describe('InventoryFilter selectors', () => {
+  it('should return InventoryFilter', () => {
+    expect(selectInventoryFilter(state)).toEqual({
+      filterTerm: 'test_filter_term',
+    });
+  });
 
-describe('InventoryFilter selectors', () =>
-  testSelectorsSnapshotWithFixtures(fixtures));
+  it('should return filterTerm', () => {
+    expect(selectFilterTerm(state)).toBe('test_filter_term');
+  });
+});

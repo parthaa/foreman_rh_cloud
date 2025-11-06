@@ -1,4 +1,4 @@
-import { testReducerSnapshotWithFixtures } from '@theforeman/test';
+import Immutable from 'seamless-immutable';
 import reducer from '../InventoryFilterReducer';
 import { filterTerm } from '../InventoryFilter.fixtures';
 import {
@@ -6,23 +6,36 @@ import {
   INVENTORY_FILTER_CLEAR,
 } from '../InventoryFilterConstants';
 
-const fixtures = {
-  'should return the initial state': {},
-  'should handle INVENTORY_FILTER_UPDATE': {
-    action: {
+describe('InventoryFilter reducer', () => {
+  const initialState = Immutable({
+    filterTerm: '',
+  });
+
+  it('should return the initial state', () => {
+    expect(reducer(undefined, {})).toEqual({
+      filterTerm: '',
+    });
+  });
+
+  it('should handle INVENTORY_FILTER_UPDATE', () => {
+    const action = {
       type: INVENTORY_FILTER_UPDATE,
       payload: {
         filterTerm,
       },
-    },
-  },
-  'should handle INVENTORY_FILTER_CLEAR': {
-    action: {
+    };
+    expect(reducer(initialState, action)).toEqual({
+      filterTerm: 'test_filter_term',
+    });
+  });
+
+  it('should handle INVENTORY_FILTER_CLEAR', () => {
+    const action = {
       type: INVENTORY_FILTER_CLEAR,
       payload: {},
-    },
-  },
-};
-
-describe('AccountList reducer', () =>
-  testReducerSnapshotWithFixtures(reducer, fixtures));
+    };
+    expect(reducer(initialState, action)).toEqual({
+      filterTerm: '',
+    });
+  });
+});
