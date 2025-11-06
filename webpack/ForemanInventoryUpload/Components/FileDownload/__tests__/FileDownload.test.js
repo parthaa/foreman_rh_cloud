@@ -1,13 +1,12 @@
-import { testComponentSnapshotsWithFixtures } from '@theforeman/test';
-
+import React from 'react';
+import { render, screen } from '@testing-library/react';
+import '@testing-library/jest-dom';
 import FileDownload from '../FileDownload';
 
-const fixtures = {
-  'render without Props': {},
-  /** fixtures, props for the component */
-};
-
 describe('FileDownload', () => {
-  describe('rendering', () =>
-    testComponentSnapshotsWithFixtures(FileDownload, fixtures));
+  it('should render without props', () => {
+    render(<FileDownload />);
+
+    expect(screen.getByText('Download Report')).toBeInTheDocument();
+  });
 });
