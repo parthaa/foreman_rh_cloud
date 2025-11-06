@@ -1,4 +1,3 @@
-import { testSelectorsSnapshotWithFixtures } from '@theforeman/test';
 import {
   selectAccountsList,
   selectAccounts,
@@ -14,12 +13,51 @@ const state = rhCloudStateWrapper({
   },
 });
 
-const fixtures = {
-  'should return AccountsList': () => selectAccountsList(state),
-  'should return AccountList accounts': () => selectAccounts(state),
-  'should return AccountList pollingProcessID': () =>
-    selectPollingProcessID(state),
-};
+describe('AccountList selectors', () => {
+  it('should return AccountsList', () => {
+    expect(selectAccountsList(state)).toEqual({
+      accounts: {
+        Account1: {
+          generate_report_status: 'running',
+          id: 1,
+          upload_report_status: 'running',
+        },
+        Account2: {
+          generate_report_status: 'failure',
+          id: 2,
+          upload_report_status: 'unknown',
+        },
+        Account3: {
+          generate_report_status: 'running',
+          id: 3,
+          upload_report_status: 'success',
+        },
+      },
+      pollingProcessID: 0,
+    });
+  });
 
-describe('AccountList selectors', () =>
-  testSelectorsSnapshotWithFixtures(fixtures));
+  it('should return AccountList accounts', () => {
+    expect(selectAccounts(state)).toEqual({
+      Account1: {
+        generate_report_status: 'running',
+        id: 1,
+        upload_report_status: 'running',
+      },
+      Account2: {
+        generate_report_status: 'failure',
+        id: 2,
+        upload_report_status: 'unknown',
+      },
+      Account3: {
+        generate_report_status: 'running',
+        id: 3,
+        upload_report_status: 'success',
+      },
+    });
+  });
+
+  it('should return AccountList pollingProcessID', () => {
+    expect(selectPollingProcessID(state)).toBe(0);
+  });
+});

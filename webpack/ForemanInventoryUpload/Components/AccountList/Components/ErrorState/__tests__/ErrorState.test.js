@@ -1,13 +1,12 @@
-import { testComponentSnapshotsWithFixtures } from '@theforeman/test';
-
+import React from 'react';
+import { render, screen } from '@testing-library/react';
+import '@testing-library/jest-dom';
 import ErrorState from '../ErrorState';
 
-const fixtures = {
-  'render without Props': {},
-  /** fixtures, props for the component */
-};
-
 describe('ErrorState', () => {
-  describe('rendering', () =>
-    testComponentSnapshotsWithFixtures(ErrorState, fixtures));
+  it('should render without props', () => {
+    render(<ErrorState />);
+
+    expect(screen.getByText('Encountered an error while trying to access the server:')).toBeInTheDocument();
+  });
 });

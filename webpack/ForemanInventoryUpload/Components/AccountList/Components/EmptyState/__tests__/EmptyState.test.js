@@ -1,13 +1,13 @@
-import { testComponentSnapshotsWithFixtures } from '@theforeman/test';
-
+import React from 'react';
+import { render, screen } from '@testing-library/react';
+import '@testing-library/jest-dom';
 import EmptyState from '../EmptyState';
 
-const fixtures = {
-  'render without Props': {},
-  /** fixtures, props for the component */
-};
-
 describe('EmptyState', () => {
-  describe('rendering', () =>
-    testComponentSnapshotsWithFixtures(EmptyState, fixtures));
+  it('should render without props', () => {
+    render(<EmptyState />);
+
+    expect(screen.getByText('Fetching data about your accounts')).toBeInTheDocument();
+    expect(screen.getByText('Loading...')).toBeInTheDocument();
+  });
 });
