@@ -9,7 +9,7 @@ jest.mock('../../../../Dashboard', () => ({
   default: () => <div data-testid="dashboard">Dashboard</div>,
 }));
 
-jest.mock('../../../ListItemStatus', () => ({
+jest.mock('../../ListItemStatus', () => ({
   __esModule: true,
   default: () => <div data-testid="list-item-status">Status</div>,
 }));
