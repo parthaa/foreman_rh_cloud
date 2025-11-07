@@ -1,12 +1,18 @@
-import { testComponentSnapshotsWithFixtures } from '@theforeman/test';
-
+import React from 'react';
+import { render, screen } from '@testing-library/react';
+import '@testing-library/jest-dom';
 import PageTitle from '../PageTitle';
 
-const fixtures = {
-  'render without Props': {},
-};
+jest.mock('../components/CloudPingModal', () => ({
+  __esModule: true,
+  default: () => <div data-testid="cloud-ping-modal">CloudPingModal</div>,
+}));
 
 describe('PageTitle', () => {
-  describe('rendering', () =>
-    testComponentSnapshotsWithFixtures(PageTitle, fixtures));
+  it('should render without props', () => {
+    render(<PageTitle />);
+
+    expect(screen.getByText('Red Hat Inventory')).toBeInTheDocument();
+    expect(screen.getByTestId('cloud-ping-modal')).toBeInTheDocument();
+  });
 });

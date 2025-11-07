@@ -1,4 +1,3 @@
-import { testSelectorsSnapshotWithFixtures } from '@theforeman/test';
 import { selectTaskStatus } from '../SyncButtonSelectors';
 
 const state = {
@@ -19,9 +18,8 @@ const state = {
   },
 };
 
-const fixtures = {
-  'should return InventorySync status': () => selectTaskStatus(state),
-};
-
-describe('SyncButton selectors', () =>
-  testSelectorsSnapshotWithFixtures(fixtures));
+describe('SyncButton selectors', () => {
+  it('should return InventorySync status', () => {
+    expect(selectTaskStatus(state)).toBe('PENDING');
+  });
+});

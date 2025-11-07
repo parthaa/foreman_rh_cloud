@@ -1,5 +1,9 @@
 import React from 'react';
-import { IntegrationTestHelper } from '@theforeman/test';
+import { render, screen, fireEvent, waitFor } from '@testing-library/react';
+import '@testing-library/jest-dom';
+import { Provider } from 'react-redux';
+import { createStore, applyMiddleware } from 'redux';
+import thunk from 'redux-thunk';
 import * as API from 'foremanReact/redux/API';
 import { noop } from 'foremanReact/common/helpers';
 import SyncButton from '../index';
@@ -18,7 +22,7 @@ describe('SyncButton integration test', () => {
       if (key === INVENTORY_SYNC) {
         handleSuccess(successResponse);
       }
-      return { type: 'API_POST', ...action };
+      return { type: 'API_POST', key, ...action };
     });
     API.get.mockImplementation(({ handleSuccess = noop, key, ...action }) => {
       if (key === INVENTORY_SYNC_TASK_UPDATE) {
@@ -38,14 +42,31 @@ describe('SyncButton integration test', () => {
           jest.fn
         );
       }
-      return { type: 'API_GET', ...action };
+      return { type: 'API_GET', key, ...action };
     });
 
-    const integrationTestHelper = new IntegrationTestHelper();
-    const wrapper = integrationTestHelper.mount(<SyncButton />);
-    const instance = wrapper.find('SyncButton').instance();
-    instance.props.handleSync();
-    await IntegrationTestHelper.flushAllPromises();
-    integrationTestHelper.takeActionsSnapshot('handleSync was called');
+    const reducer = (state = {}, action) => {
+      // Simple reducer for testing
+      return state;
+    };
+
+    const store = createStore(reducer, applyMiddleware(thunk));
+
+    render(
+      <Provider store={store}>
+        <SyncButton />
+      </Provider>
+    );
+
+    const button = screen.getByText('Sync all inventory status');
+    fireEvent.click(button);
+
+    await waitFor(() => {
+      expect(API.post).toHaveBeenCalledWith(
+        expect.objectContaining({
+          key: INVENTORY_SYNC,
+        })
+      );
+    });
   });
 });
