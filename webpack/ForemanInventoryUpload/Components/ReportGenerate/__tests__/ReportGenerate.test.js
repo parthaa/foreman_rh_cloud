@@ -5,6 +5,11 @@ import '@testing-library/jest-dom';
 import ReportGenerate from '../ReportGenerate';
 import { props } from '../ReportGenerate.fixtures';
 
+jest.mock('../../ScheduledRun', () => ({
+  __esModule: true,
+  default: () => <div data-testid="scheduled-run">ScheduledRun</div>,
+}));
+
 describe('ReportGenerate', () => {
   describe('rendering', () => {
     it('should render without props', () => {
