@@ -4,12 +4,12 @@ import '@testing-library/jest-dom';
 import ListItem from '../ListItem';
 import { props } from '../ListItem.fixtures';
 
-jest.mock('../../../Dashboard', () => ({
+jest.mock('../../../../Dashboard', () => ({
   __esModule: true,
   default: () => <div data-testid="dashboard">Dashboard</div>,
 }));
 
-jest.mock('../ListItemStatus', () => ({
+jest.mock('../../../ListItemStatus', () => ({
   __esModule: true,
   default: () => <div data-testid="list-item-status">Status</div>,
 }));
