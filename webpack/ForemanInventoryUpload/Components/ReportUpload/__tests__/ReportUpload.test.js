@@ -1,14 +1,20 @@
-import { testComponentSnapshotsWithFixtures } from '@theforeman/test';
+import React from 'react';
+import { render, screen } from '@testing-library/react';
+import '@testing-library/jest-dom';
 
 import ReportUpload from '../ReportUpload';
 import { props } from '../ReportUpload.fixtures';
 
-const fixtures = {
-  'render without Props': {},
-  'render with Props': props,
-};
-
 describe('ReportUpload', () => {
-  describe('rendering', () =>
-    testComponentSnapshotsWithFixtures(ReportUpload, fixtures));
+  describe('rendering', () => {
+    it('should render without props', () => {
+      render(<ReportUpload />);
+      expect(screen.getByRole('button')).toBeInTheDocument();
+    });
+
+    it('should render with props', () => {
+      render(<ReportUpload {...props} />);
+      expect(screen.getByRole('button')).toBeInTheDocument();
+    });
+  });
 });

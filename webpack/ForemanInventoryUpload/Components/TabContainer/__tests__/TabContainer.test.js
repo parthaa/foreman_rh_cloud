@@ -1,13 +1,14 @@
-import { testComponentSnapshotsWithFixtures } from '@theforeman/test';
+import React from 'react';
+import { render } from '@testing-library/react';
+import '@testing-library/jest-dom';
 
 import TabContainer from '../TabContainer';
 
-const fixtures = {
-  'render without Props': {},
-  /** fixtures, props for the component */
-};
-
 describe('TabContainer', () => {
-  describe('rendering', () =>
-    testComponentSnapshotsWithFixtures(TabContainer, fixtures));
+  describe('rendering', () => {
+    it('should render without props', () => {
+      const { container } = render(<TabContainer />);
+      expect(container.querySelector('.tab-container')).toBeInTheDocument();
+    });
+  });
 });

@@ -1,17 +1,21 @@
-import { testComponentSnapshotsWithFixtures } from '@theforeman/test';
+import React from 'react';
+import { render, screen } from '@testing-library/react';
+import '@testing-library/jest-dom';
 import { noop } from 'foremanReact/common/helpers';
 
 import InventoryAutoUpload from '../InventoryAutoUpload';
 
-const fixtures = {
-  'render with props': {
-    autoUploadEnabled: true,
-    setSetting: noop,
-    getSettings: noop,
-  },
-};
-
 describe('InventoryAutoUpload', () => {
-  describe('rendering', () =>
-    testComponentSnapshotsWithFixtures(InventoryAutoUpload, fixtures));
+  describe('rendering', () => {
+    it('should render with props', () => {
+      render(
+        <InventoryAutoUpload
+          autoUploadEnabled={true}
+          setSetting={noop}
+          getSettings={noop}
+        />
+      );
+      expect(screen.getByRole('checkbox')).toBeInTheDocument();
+    });
+  });
 });

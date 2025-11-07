@@ -1,13 +1,14 @@
-import { testComponentSnapshotsWithFixtures } from '@theforeman/test';
+import React from 'react';
+import { render } from '@testing-library/react';
+import '@testing-library/jest-dom';
 
 import TabFooter from '../TabFooter';
 
-const fixtures = {
-  'render without Props': {},
-  /** fixtures, props for the component */
-};
-
 describe('TabFooter', () => {
-  describe('rendering', () =>
-    testComponentSnapshotsWithFixtures(TabFooter, fixtures));
+  describe('rendering', () => {
+    it('should render without props', () => {
+      const { container } = render(<TabFooter />);
+      expect(container.querySelector('.tab-footer')).toBeInTheDocument();
+    });
+  });
 });

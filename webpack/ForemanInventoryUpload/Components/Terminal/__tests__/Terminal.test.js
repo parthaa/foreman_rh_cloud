@@ -1,34 +1,40 @@
 import React from 'react';
-import { mount, testComponentSnapshotsWithFixtures } from '@theforeman/test';
+import { render, screen } from '@testing-library/react';
+import '@testing-library/jest-dom';
 import Terminal from '../Terminal';
 import { props, logs } from '../Terminal.fixtures';
 
-const fixtures = {
-  'render without Props': {},
-  'render with props': props,
-};
-
 describe('Terminal', () => {
-  describe('rendering', () =>
-    testComponentSnapshotsWithFixtures(Terminal, fixtures));
+  describe('rendering', () => {
+    it('should render without props', () => {
+      const { container } = render(<Terminal />);
+      expect(container.querySelector('.rh-cloud-inventory-terminal')).toBeInTheDocument();
+    });
+
+    it('should render with props', () => {
+      const { container } = render(<Terminal {...props} />);
+      expect(container.querySelector('.rh-cloud-inventory-terminal')).toBeInTheDocument();
+    });
+  });
 
   it('handles terminal scroll on componentDidUpdate', () => {
-    const wrapper = mount(<Terminal {...props} />);
-    jest.spyOn(wrapper.instance(), 'scrollBottom');
-    wrapper.setProps({ logs: [...logs, 'new-log'] });
-    expect(wrapper.instance().scrollBottom).toBeCalled();
+    const { rerender } = render(<Terminal {...props} />);
+    const scrollBottomSpy = jest.spyOn(Terminal.prototype, 'scrollBottom');
+    rerender(<Terminal {...props} logs={[...logs, 'new-log']} />);
+    expect(scrollBottomSpy).toHaveBeenCalled();
+    scrollBottomSpy.mockRestore();
   });
 
   it('error should be displayed in terminal', () => {
     const modifiedProps = { ...props, error: 'some-error' };
-    const wrapper = mount(<Terminal {...modifiedProps} />);
-    expect(wrapper.find('p.terminal_error').exists()).toBeTruthy();
+    const { container } = render(<Terminal {...modifiedProps} />);
+    expect(container.querySelector('p.terminal_error')).toBeInTheDocument();
   });
 
   it('logs as a string instead of an array should be displayed', () => {
     const text = 'some-string-log';
     const modifiedProps = { ...props, logs: text };
-    const wrapper = mount(<Terminal {...modifiedProps} />);
-    expect(wrapper.find('.rh-cloud-inventory-terminal p').text()).toEqual(text);
+    const { container } = render(<Terminal {...modifiedProps} />);
+    expect(container.querySelector('.rh-cloud-inventory-terminal p')).toHaveTextContent(text);
   });
 });

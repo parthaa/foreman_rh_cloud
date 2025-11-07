@@ -1,10 +1,12 @@
-import { testComponentSnapshotsWithFixtures } from '@theforeman/test';
+import React from 'react';
+import { render } from '@testing-library/react';
+import '@testing-library/jest-dom';
 
 import ForemanInventoryUpload from '../../ForemanInventoryUpload';
 
-const fixtures = {
-  'render without Props': {},
-};
-
-describe('ForemanInventoryUpload', () =>
-  testComponentSnapshotsWithFixtures(ForemanInventoryUpload, fixtures));
+describe('ForemanInventoryUpload', () => {
+  it('should render without props', () => {
+    const { container } = render(<ForemanInventoryUpload />);
+    expect(container.querySelector('.foreman-inventory-upload')).toBeInTheDocument();
+  });
+});

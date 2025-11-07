@@ -1,14 +1,20 @@
-import { testComponentSnapshotsWithFixtures } from '@theforeman/test';
+import React from 'react';
+import { render, screen } from '@testing-library/react';
+import '@testing-library/jest-dom';
 
 import ReportGenerate from '../ReportGenerate';
 import { props } from '../ReportGenerate.fixtures';
 
-const fixtures = {
-  'render without Props': {},
-  'render with Props': props,
-};
-
 describe('ReportGenerate', () => {
-  describe('rendering', () =>
-    testComponentSnapshotsWithFixtures(ReportGenerate, fixtures));
+  describe('rendering', () => {
+    it('should render without props', () => {
+      render(<ReportGenerate />);
+      expect(screen.getByRole('button')).toBeInTheDocument();
+    });
+
+    it('should render with props', () => {
+      render(<ReportGenerate {...props} />);
+      expect(screen.getByRole('button')).toBeInTheDocument();
+    });
+  });
 });

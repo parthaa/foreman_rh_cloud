@@ -1,13 +1,14 @@
-import { testComponentSnapshotsWithFixtures } from '@theforeman/test';
+import React from 'react';
+import { render } from '@testing-library/react';
+import '@testing-library/jest-dom';
 
 import TabBody from '../TabBody';
 
-const fixtures = {
-  'render without Props': {},
-  /** fixtures, props for the component */
-};
-
 describe('TabBody', () => {
-  describe('rendering', () =>
-    testComponentSnapshotsWithFixtures(TabBody, fixtures));
+  describe('rendering', () => {
+    it('should render without props', () => {
+      const { container } = render(<TabBody />);
+      expect(container.querySelector('.tab-body')).toBeInTheDocument();
+    });
+  });
 });
