@@ -4,15 +4,21 @@ import '@testing-library/jest-dom';
 import ListItem from '../ListItem';
 import { props } from '../ListItem.fixtures';
 
-jest.mock('../../../../Dashboard', () => ({
-  __esModule: true,
-  default: () => <div data-testid="dashboard">Dashboard</div>,
-}));
+jest.mock('../../../../Dashboard', () => {
+  const React = require('react');
+  return {
+    __esModule: true,
+    default: () => <div data-testid="dashboard">Dashboard</div>,
+  };
+});
 
-jest.mock('../../ListItemStatus', () => ({
-  __esModule: true,
-  default: () => <div data-testid="list-item-status">Status</div>,
-}));
+jest.mock('../../ListItemStatus', () => {
+  const React = require('react');
+  return {
+    __esModule: true,
+    default: () => <div data-testid="list-item-status">Status</div>,
+  };
+});
 
 describe('ListItem', () => {
   it('should render with props', () => {
