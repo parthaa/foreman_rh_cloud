@@ -72,11 +72,11 @@ module ForemanRhCloud
           )
           permission(
             :view_insights_recommendations,
-            'api/v2/rh_cloud/recommendations': [:index, :show]
+            'api/v2/rh_cloud/recommendations': [:index, :show, :host_recommendations]
           )
           permission(
             :view_insights_vulnerabilities,
-            'api/v2/rh_cloud/vulnerabilities': [:index, :show]
+            'api/v2/rh_cloud/vulnerabilities': [:index, :show, :host_vulnerabilities]
           )
         end
 

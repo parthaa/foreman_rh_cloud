@@ -102,6 +102,49 @@ module Api
           assert_response :bad_request
           assert_includes @response.body, 'Location not found or invalid'
         end
+
+        context 'host_vulnerabilities action' do
+          setup do
+            @host = FactoryBot.create(:host, :managed, organization: @org, location: @loc)
+            @insights_facet = FactoryBot.create(:insights_facet, host: @host, uuid: 'test-uuid-1234')
+          end
+
+          test "should get host vulnerabilities" do
+            get :host_vulnerabilities, params: { host_id: @host.id }, session: set_session_user
+            assert_response :success
+            assert_equal @body, @response.body
+          end
+
+          test "should handle host not found" do
+            get :host_vulnerabilities, params: { host_id: 'nonexistent' }, session: set_session_user
+            assert_response :not_found
+            assert_includes @response.body, 'Host not found'
+          end
+
+          test "should handle host without insights facet" do
+            host_without_insights = FactoryBot.create(:host, :managed, organization: @org, location: @loc)
+            get :host_vulnerabilities, params: { host_id: host_without_insights.id }, session: set_session_user
+            assert_response :not_found
+            assert_includes @response.body, 'Host does not have Insights UUID'
+          end
+
+          test "should handle timeout error for host vulnerabilities" do
+            error_response = RestClient::Response.create('timeout error', mock('net_http_resp'), @http_req)
+            error = RestClient::Exceptions::Timeout.new(error_response)
+            ::ForemanRhCloud::InsightsApiForwarder.any_instance.stubs(:forward_request).raises(error)
+
+            get :host_vulnerabilities, params: { host_id: @host.id }, session: set_session_user
+            assert_response :gateway_timeout
+          end
+
+          test "should handle unauthorized error for host vulnerabilities" do
+            error = RestClient::Unauthorized.new
+            ::ForemanRhCloud::InsightsApiForwarder.any_instance.stubs(:forward_request).raises(error)
+
+            get :host_vulnerabilities, params: { host_id: @host.id }, session: set_session_user
+            assert_response :unauthorized
+          end
+        end
       end
     end
   end

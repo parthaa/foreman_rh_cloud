@@ -72,6 +72,13 @@ Rails.application.routes.draw do
         end
       end
 
+      resources :hosts, :only => [] do
+        namespace 'rh_cloud' do
+          get 'recommendations', to: 'recommendations#host_recommendations'
+          get 'vulnerabilities', to: 'vulnerabilities#host_vulnerabilities'
+        end
+      end
+
       namespace 'rh_cloud' do
         post 'enable_connector', to: 'inventory#enable_cloud_connector'
         post 'cloud_request', to: 'cloud_request#update'

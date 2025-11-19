@@ -7,6 +7,7 @@ module Api
         layout false
 
         before_action :ensure_org, :ensure_loc
+        before_action :find_host, only: [:host_recommendations]
 
         api :GET, '/rh_cloud/recommendations', N_('List Insights recommendations')
         def index
@@ -19,7 +20,41 @@ module Api
           forward_cloud_request("api/insights/v1/rule/#{params[:id]}")
         end
 
+        api :GET, '/hosts/:host_id/rh_cloud/recommendations', N_('List Insights recommendations for a host')
+        param :host_id, :identifier, required: true, desc: N_('Host ID or name')
+        def host_recommendations
+          host = find_host
+          return unless host
+
+          insights_uuid = host.insights&.uuid
+          unless insights_uuid
+            return render json: { message: 'Host does not have Insights UUID', error: 'No Insights facet found' }, status: :not_found
+          end
+
+          forward_cloud_request("api/insights/v1/system/#{insights_uuid}/reports/")
+        end
+
         private
+
+        def find_host
+          @host ||= resource_scope_for_index.find(params[:host_id])
+        rescue ActiveRecord::RecordNotFound
+          render json: { message: 'Host not found', error: "Host with id #{params[:host_id]} not found" }, status: :not_found
+          nil
+        end
+
+        def resource_scope_for_index(options = {})
+          @resource_scope_for_index ||= Host.authorized("#{action_permission}_hosts", Host)
+        end
+
+        def action_permission
+          case params[:action]
+          when 'host_recommendations'
+            :view
+          else
+            super
+          end
+        end
 
         def forward_cloud_request(path)
           begin
