@@ -70,9 +70,17 @@ module ForemanRhCloud
             :control_organization_insights,
             'insights_cloud/settings': [:set_org_parameter]
           )
+          permission(
+            :view_insights_recommendations,
+            'api/v2/rh_cloud/recommendations': [:index, :show]
+          )
+          permission(
+            :view_insights_vulnerabilities,
+            'api/v2/rh_cloud/vulnerabilities': [:index, :show]
+          )
         end
 
-        plugin_permissions = [:view_foreman_rh_cloud, :generate_foreman_rh_cloud, :view_insights_hits, :dispatch_cloud_requests, :control_organization_insights]
+        plugin_permissions = [:view_foreman_rh_cloud, :generate_foreman_rh_cloud, :view_insights_hits, :dispatch_cloud_requests, :control_organization_insights, :view_insights_recommendations, :view_insights_vulnerabilities]
 
         role 'ForemanRhCloud', plugin_permissions, 'Role granting permissions to view the hosts inventory,
                                                     generate a report, upload it to the cloud and download it locally'
