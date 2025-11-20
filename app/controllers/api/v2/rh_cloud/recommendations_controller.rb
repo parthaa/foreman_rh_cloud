@@ -2,11 +2,9 @@ module Api
   module V2
     module RhCloud
       class RecommendationsController < ::Api::V2::BaseController
-        include ForemanRhCloud::IopSmartProxyAccess
-
         layout false
 
-        before_action :ensure_org, :ensure_loc
+        before_action :set_org, :set_loc
         before_action :find_host, only: [:host_recommendations]
 
         api :GET, '/rh_cloud/recommendations', N_('List Insights recommendations')
@@ -106,14 +104,18 @@ module Api
           response.headers[key.to_s.upcase.tr('_', '-')] = value.to_s
         end
 
-        def ensure_org
-          @organization = Organization.current
-          return render_message 'Organization not found or invalid', status: 400 unless @organization
+        def set_org
+          @organization = if params[:organization_id]
+                            Organization.find(params[:organization_id])
+                          else
+                            Organization.current
+                          end
+        rescue ActiveRecord::RecordNotFound
+          render json: { message: 'Organization not found', error: "Organization with id #{params[:organization_id]} not found" }, status: :not_found
         end
 
-        def ensure_loc
+        def set_loc
           @location = Location.current
-          return render_message 'Location not found or invalid', status: 400 unless @location
         end
 
         def render_message(msg, status:)

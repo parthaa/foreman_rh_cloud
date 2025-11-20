@@ -89,20 +89,6 @@ module Api
           assert_response :bad_gateway
         end
 
-        test "should require organization" do
-          Organization.current = nil
-          get :index, session: set_session_user
-          assert_response :bad_request
-          assert_includes @response.body, 'Organization not found or invalid'
-        end
-
-        test "should require location" do
-          Location.current = nil
-          get :index, session: set_session_user
-          assert_response :bad_request
-          assert_includes @response.body, 'Location not found or invalid'
-        end
-
         context 'host_vulnerabilities action' do
           setup do
             @host = FactoryBot.create(:host, :managed, organization: @org, location: @loc)

@@ -69,13 +69,16 @@ Rails.application.routes.draw do
 
           post 'inventory_sync', to: 'inventory#sync_inventory_status'
           post 'missing_hosts', to: 'inventory#remove_hosts'
-        end
-      end
 
-      resources :hosts, :only => [] do
-        namespace 'rh_cloud' do
-          get 'recommendations', to: 'recommendations#host_recommendations'
-          get 'vulnerabilities', to: 'vulnerabilities#host_vulnerabilities'
+          resources :recommendations, only: [:index, :show]
+          resources :vulnerabilities, only: [:index, :show]
+        end
+
+        resources :hosts, :only => [] do
+          namespace 'rh_cloud' do
+            get 'recommendations', to: 'recommendations#host_recommendations'
+            get 'vulnerabilities', to: 'vulnerabilities#host_vulnerabilities'
+          end
         end
       end
 
@@ -83,9 +86,6 @@ Rails.application.routes.draw do
         post 'enable_connector', to: 'inventory#enable_cloud_connector'
         post 'cloud_request', to: 'cloud_request#update'
         get 'advisor_engine_config', to: 'advisor_engine_config#show'
-
-        resources :recommendations, only: [:index, :show]
-        resources :vulnerabilities, only: [:index, :show]
       end
 
       namespace 'advisor_engine' do
