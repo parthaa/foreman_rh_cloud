@@ -4,23 +4,28 @@ module Api
       class VulnerabilitiesController < ::Api::V2::BaseController
         layout false
 
-        before_action :set_org, :set_loc
         before_action :find_host, only: [:host_vulnerabilities]
 
-        api :GET, '/rh_cloud/vulnerabilities', N_('List CVE vulnerabilities')
+        api :GET, '/organizations/:organization_id/rh_cloud/vulnerabilities', N_('List CVE vulnerabilities')
+        param :organization_id, Integer, required: true, desc: N_("Set the current organization context for the request")
         def index
-          forward_cloud_request('api/vulnerability/v1/cves')
+          organization = Organization.find(params[:organization_id])
+          forward_cloud_request('api/vulnerability/v1/cves', organization)
         end
 
-        api :GET, '/rh_cloud/vulnerabilities/:id', N_('Show a CVE vulnerability')
+        api :GET, '/organizations/:organization_id/rh_cloud/vulnerabilities/:id', N_('Show a CVE vulnerability')
+        param :organization_id, Integer, required: true, desc: N_("Set the current organization context for the request")
         param :id, String, required: true, desc: N_('CVE ID')
         def show
-          forward_cloud_request("api/vulnerability/v1/cves/#{params[:id]}")
+          organization = Organization.find(params[:organization_id])
+          forward_cloud_request("api/vulnerability/v1/cves/#{params[:id]}", organization)
         end
 
-        api :GET, '/hosts/:host_id/rh_cloud/vulnerabilities', N_('List CVE vulnerabilities for a host')
+        api :GET, '/organizations/:organization_id/hosts/:host_id/rh_cloud/vulnerabilities', N_('List CVE vulnerabilities for a host')
+        param :organization_id, Integer, required: true, desc: N_("Set the current organization context for the request")
         param :host_id, :identifier, required: true, desc: N_('Host ID or name')
         def host_vulnerabilities
+          organization = Organization.find(params[:organization_id])
           host = find_host
           return unless host
 
@@ -29,7 +34,7 @@ module Api
             return render json: { message: 'Host does not have Insights UUID', error: 'No Insights facet found' }, status: :not_found
           end
 
-          forward_cloud_request("api/vulnerability/v1/systems/#{insights_uuid}/cves")
+          forward_cloud_request("api/vulnerability/v1/systems/#{insights_uuid}/cves", organization)
         end
 
         private
@@ -54,15 +59,15 @@ module Api
           end
         end
 
-        def forward_cloud_request(path)
+        def forward_cloud_request(path, organization)
           begin
             @cloud_response = ::ForemanRhCloud::InsightsApiForwarder.new.forward_request(
               request,
               path,
               controller_name,
               User.current,
-              @organization,
-              @location
+              organization,
+              Location.current
             )
           rescue RestClient::Exceptions::Timeout => e
             response_obj = e.response.presence || e.exception
@@ -102,24 +107,6 @@ module Api
           return unless value || allow_nil
 
           response.headers[key.to_s.upcase.tr('_', '-')] = value.to_s
-        end
-
-        def set_org
-          @organization = if params[:organization_id]
-                            Organization.find(params[:organization_id])
-                          else
-                            Organization.current
-                          end
-        rescue ActiveRecord::RecordNotFound
-          render json: { message: 'Organization not found', error: "Organization with id #{params[:organization_id]} not found" }, status: :not_found
-        end
-
-        def set_loc
-          @location = Location.current
-        end
-
-        def render_message(msg, status:)
-          render json: { message: msg, error: msg }, status: status
         end
       end
     end
