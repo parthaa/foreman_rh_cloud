@@ -20,7 +20,7 @@ module ForemanRhCloud
     end
 
     def update_tag
-      logger.debug("Updating tags for user: #{@user}, org: #{@org.name}, loc: #{@loc.name}")
+      logger.debug("Updating tags for user: #{@user}, org: #{@org.name}, loc: #{@loc&.name}")
 
       payload = tags_query_payload
       params = {
@@ -47,7 +47,7 @@ module ForemanRhCloud
     end
 
     def tag_value
-      "U:\"#{@user.login}\"O:\"#{@org.name}\"L:\"#{@loc.name}\""
+      "U:\"#{@user.login}\"O:\"#{@org.name}\"L:\"#{@loc&.name}\""
     end
 
     def auth_tag
