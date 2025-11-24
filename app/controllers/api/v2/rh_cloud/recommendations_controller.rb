@@ -10,7 +10,7 @@ module Api
         param :organization_id, Integer, required: true, desc: N_("Set the current organization context for the request")
         def index
           organization = Organization.find(params[:organization_id])
-          forward_cloud_request('api/insights/v1/rule/', organization)
+          forward_cloud_request('api/insights/v1/rule/?impacting=true&rule_status=enabled', organization)
         end
 
         api :GET, '/organizations/:organization_id/rh_cloud/recommendations/:id', N_('Show an Insights recommendation')
